@@ -2,7 +2,7 @@ from xml.etree import ElementTree
 
 
 class CastVote:
-    contests = []
+    records = []
     batchSequence = None
     sheetNumber = None
     precinctSplit = None
@@ -28,26 +28,33 @@ class CastVote:
 
     def getContests(self, tree):
         for contest in tree:
-            self.contests.append(self.getSingleContest(contest))
+            self.records.append(self.getSingleContest(contest))
 
     def getSingleContest(self, tree):
         contest_data = {}
-        contest_data["options"] = []
-
+        contest_name = ""
         for child in tree:
             if "Name" in child.tag:
-                contest_data["name"] = child.text
-            elif "Options" in child.tag:
+                contest_name = child.text
+                if child.text not in contest_data.keys():
+                    contest_data[contest_name] = []
+                break
+
+        for child in tree:
+            if "Options" in child.tag:
                 for option in child:
+                    #print(option.tag)
                     name = ""
                     value = "0"
                     for data_point in option:
-                        if "Name" in data_point:
+                        #print(data_point.tag)
+                        if "Name" in data_point.tag:
                             name = data_point.text
-                        elif "Value" in data_point:
+                            #print(name)
+                        elif "Value" in data_point.tag:
                             value = data_point.text
                     if value != "0":
-                        contest_data["options"].append(name)
+                        contest_data[contest_name].append(name)
 
         return contest_data
 
@@ -67,3 +74,18 @@ class CastVote:
 
     def getCvrGuid(self, tree):
         self.CvrGuid = tree.text
+
+    def __str__(self):
+        string = ""
+        string += f"Batch Sequence: \t\t{self.batchSequence}\n"
+        string += f"Sheet Number: \t\t{self.sheetNumber}\n"
+        string += f"Precinct: \t\t{self.precinctSplit}\n"
+        string += f"Batch Number: \t\t{self.batchNumber}\n"
+        string += f"Selections:\n"
+        for record in self.records:
+            for contest_name in record.keys():
+                sanitized_contest_name = contest_name.replace('\n', ' ')
+                string += f"\t\t{sanitized_contest_name}\n\t\t\t{record[contest_name]}\n"
+
+        return string
+

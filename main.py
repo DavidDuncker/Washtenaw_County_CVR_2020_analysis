@@ -23,3 +23,8 @@ def get_list_of_cast_votes(max=9999999):
             break
 
     return list_of_cast_votes
+
+if __name__ == "__main__":
+    list_of_votes = get_list_of_cast_votes(max=100)
+    for vote in list_of_votes:
+        print(vote)
